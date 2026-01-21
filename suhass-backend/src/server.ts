@@ -1,14 +1,15 @@
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
+import { env } from "./config/env.js";
 
-const PORT = process.env.PORT || 4000;
+const PORT = env.PORT || 4000;
 
 (async () => {
   try {
     await connectDB();
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📡 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`📡 Environment: ${env.NODE_ENV}`);
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);
