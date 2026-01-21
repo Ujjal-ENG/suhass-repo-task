@@ -1,62 +1,35 @@
-import {
-  Navigate,
-  Outlet,
-  Route,
-  BrowserRouter as Router,
-  Routes,
-} from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import ProjectsPage from "./pages/ProjectsPage";
-import RegisterPage from "./pages/RegisterPage";
-import UsersPage from "./pages/UsersPage";
-import { useAuthStore } from "./store/authStore";
-// Placeholders for now
-const Dashboard = () => (
-  <div className="p-8">
-    <h1>Dashboard (Coming Soon)</h1>
-  </div>
-);
-
-const AuthGuard = () => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
-};
-
-const RoleGuard = ({ roles }: { roles: string[] }) => {
-  const user = useAuthStore((state) => state.user);
-  if (!user) return <Navigate to="/login" replace />;
-  if (!roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
-  return <Outlet />;
-};
-
-const PublicGuard = () => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
-};
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route element={<PublicGuard />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Route>
+  const [count, setCount] = useState(0)
 
-        <Route element={<AuthGuard />}>
-          <Route
-            path="/dashboard"
-            element={<Navigate to="/projects" replace />}
-          />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route element={<RoleGuard roles={["ADMIN"]} />}>
-            <Route path="/admin/users" element={<UsersPage />} />
-          </Route>
-          <Route path="/" element={<Navigate to="/projects" replace />} />
-        </Route>
-      </Routes>
-    </Router>
-  );
+  return (
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  )
 }
 
-export default App;
+export default App
