@@ -1,21 +1,16 @@
 import {
-  Navigate,
-  Outlet,
-  Route,
-  BrowserRouter as Router,
-  Routes,
+    Navigate,
+    Outlet,
+    Route,
+    BrowserRouter as Router,
+    Routes,
 } from "react-router-dom";
+import DashboardLayout from "./components/DashboardLayout";
 import LoginPage from "./pages/LoginPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import RegisterPage from "./pages/RegisterPage";
 import UsersPage from "./pages/UsersPage";
 import { useAuthStore } from "./store/authStore";
-// Placeholders for now
-const Dashboard = () => (
-  <div className="p-8">
-    <h1>Dashboard (Coming Soon)</h1>
-  </div>
-);
 
 const AuthGuard = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -44,15 +39,17 @@ function App() {
         </Route>
 
         <Route element={<AuthGuard />}>
-          <Route
-            path="/dashboard"
-            element={<Navigate to="/projects" replace />}
-          />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route element={<RoleGuard roles={["ADMIN"]} />}>
-            <Route path="/admin/users" element={<UsersPage />} />
+          <Route element={<DashboardLayout />}>
+            <Route
+              path="/dashboard"
+              element={<Navigate to="/projects" replace />}
+            />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route element={<RoleGuard roles={["ADMIN"]} />}>
+              <Route path="/admin/users" element={<UsersPage />} />
+            </Route>
+            <Route path="/" element={<Navigate to="/projects" replace />} />
           </Route>
-          <Route path="/" element={<Navigate to="/projects" replace />} />
         </Route>
       </Routes>
     </Router>
@@ -60,3 +57,4 @@ function App() {
 }
 
 export default App;
+

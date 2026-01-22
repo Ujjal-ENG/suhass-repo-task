@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { AppDataSource } from '../config/db.js';
 import { env } from '../config/env.js';
 import { Invite } from '../models/Invite.js';
-import { User, UserRole } from '../models/User.js';
+import { User, UserRole, UserStatus } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
 
 export class AuthService {
@@ -30,6 +30,11 @@ export class AuthService {
 
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       throw new AppError('Incorrect email or password', 401);
+    }
+
+    // Check if user is deactivated
+    if (user.status === UserStatus.INACTIVE) {
+      throw new AppError('Your account has been deactivated. Please contact an administrator.', 403);
     }
 
     const token = this.signToken(user.id);
