@@ -1,10 +1,13 @@
 import { Router } from "express";
+import authRoutes from "./authRoutes.js";
+import projectRoutes from "./projectRoutes.js";
+import userRoutes from "./userRoutes.js";
 
 const router = Router();
 
-// Import routes here
-// import userRoutes from "./user.routes.js";
-// router.use("/users", userRoutes);
+router.use("/auth", authRoutes);
+router.use("/users", userRoutes);
+router.use("/projects", projectRoutes);
 
 router.get("/", (req, res) => {
   res.json({ message: "API is running" });
