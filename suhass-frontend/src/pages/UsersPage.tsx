@@ -1,36 +1,37 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
 import api from '@/lib/api';
 import { UserRole } from '@/store/authStore';
-import { Loader2, MoreHorizontal, UserPlus } from 'lucide-react';
+import { Check, Copy, Loader2, MoreHorizontal, UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 enum UserStatus {
     ACTIVE = 'ACTIVE',
@@ -53,6 +54,8 @@ export default function UsersPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<UserRole>(UserRole.STAFF);
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -61,6 +64,7 @@ export default function UsersPage() {
       setUsers(res.data.data.users);
     } catch (error) {
       console.error('Failed to fetch users', error);
+      toast.error('Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -74,8 +78,10 @@ export default function UsersPage() {
     try {
       await api.patch(`/users/${userId}/role`, { role: newRole });
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      toast.success('Role updated successfully');
     } catch (error) {
       console.error('Failed to update role', error);
+      toast.error('Failed to update role');
     }
   };
 
@@ -83,8 +89,10 @@ export default function UsersPage() {
     try {
       await api.patch(`/users/${userId}/status`, { status: newStatus });
       setUsers(users.map(u => u.id === userId ? { ...u, status: newStatus } : u));
+      toast.success(`User ${newStatus === UserStatus.ACTIVE ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
       console.error('Failed to update status', error);
+      toast.error('Failed to update status');
     }
   };
 
@@ -92,16 +100,28 @@ export default function UsersPage() {
     e.preventDefault();
     setInviteLoading(true);
     try {
-      await api.post('/auth/invite', { email: inviteEmail, role: inviteRole });
-      setInviteOpen(false);
-      setInviteEmail('');
-      // Ideally show success toast
-      alert('Invite sent successfully!');
+      const res = await api.post('/auth/invite', { email: inviteEmail, role: inviteRole });
+      setInviteLink(res.data.data.inviteLink);
+      toast.success('Invite sent successfully!');
     } catch (error: any) {
-        alert(error.response?.data?.message || 'Failed to send invite');
+      toast.error(error.response?.data?.message || 'Failed to send invite');
     } finally {
       setInviteLoading(false);
     }
+  };
+
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    toast.success('Link copied to clipboard!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCloseInviteDialog = () => {
+    setInviteOpen(false);
+    setInviteEmail('');
+    setInviteLink('');
+    setCopied(false);
   };
 
   if (loading) {
@@ -121,43 +141,67 @@ export default function UsersPage() {
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Invite New User</DialogTitle>
+                    <DialogTitle>{inviteLink ? 'Invite Sent!' : 'Invite New User'}</DialogTitle>
                     <DialogDescription>
-                        Send an invitation email to a new team member.
+                        {inviteLink 
+                            ? 'Share this link with the user to let them join the workspace.'
+                            : 'Send an invitation email to a new team member.'
+                        }
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleInvite}>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={inviteEmail}
-                                onChange={(e) => setInviteEmail(e.target.value)}
-                                required
+
+                {inviteLink ? (
+                    <div className="flex flex-col gap-4 py-4">
+                        <div className="flex items-center gap-2">
+                            <Input 
+                                readOnly 
+                                value={inviteLink} 
+                                className="font-mono text-sm"
                             />
+                            <Button size="icon" variant="outline" onClick={handleCopyLink}>
+                                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            </Button>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="role">Role</Label>
-                            <select
-                                id="role"
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={inviteRole}
-                                onChange={(e) => setInviteRole(e.target.value as UserRole)}
-                            >
-                                <option value={UserRole.STAFF}>STAFF</option>
-                                <option value={UserRole.MANAGER}>MANAGER</option>
-                                <option value={UserRole.ADMIN}>ADMIN</option>
-                            </select>
-                        </div>
+                        <DialogFooter>
+                            <Button onClick={handleCloseInviteDialog} className="w-full">
+                                Done
+                            </Button>
+                        </DialogFooter>
                     </div>
-                    <DialogFooter>
-                        <Button type="submit" disabled={inviteLoading}>
-                            {inviteLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Send Invite'}
-                        </Button>
-                    </DialogFooter>
-                </form>
+                ) : (
+                    <form onSubmit={handleInvite}>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="role">Role</Label>
+                                <select
+                                    id="role"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={inviteRole}
+                                    onChange={(e) => setInviteRole(e.target.value as UserRole)}
+                                >
+                                    <option value={UserRole.STAFF}>STAFF</option>
+                                    <option value={UserRole.MANAGER}>MANAGER</option>
+                                    <option value={UserRole.ADMIN}>ADMIN</option>
+                                </select>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit" disabled={inviteLoading}>
+                                {inviteLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Send Invite'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                )}
             </DialogContent>
         </Dialog>
       </div>
