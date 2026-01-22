@@ -1,19 +1,9 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import type { User } from '@/types';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export enum UserRole {
-  ADMIN = "ADMIN",
-  MANAGER = "MANAGER",
-  STAFF = "STAFF",
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  status: string;
-}
+// Re-export UserRole for backward compatibility
+export { UserRole } from '@/types';
 
 interface AuthState {
   user: User | null;
@@ -33,7 +23,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ user: null, token: null, isAuthenticated: false }),
     }),
     {
-      name: "auth-storage",
-    },
-  ),
+      name: 'auth-storage',
+    }
+  )
 );
