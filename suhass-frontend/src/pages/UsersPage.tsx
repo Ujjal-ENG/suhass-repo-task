@@ -1,31 +1,31 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table';
 import api from '@/lib/api';
 import { UserRole } from '@/store/authStore';
@@ -195,7 +195,28 @@ export default function UsersPage() {
                                 </select>
                             </div>
                         </div>
-                        <DialogFooter>
+                        <DialogFooter className="flex gap-2 sm:gap-2">
+                            <Button 
+                                type="button" 
+                                variant="outline"
+                                disabled={inviteLoading || !inviteEmail}
+                                onClick={async () => {
+                                    setInviteLoading(true);
+                                    try {
+                                        const res = await api.post('/auth/invite', { email: inviteEmail, role: inviteRole });
+                                        const link = res.data.data.inviteLink;
+                                        await navigator.clipboard.writeText(link);
+                                        toast.success('Invite link copied to clipboard!');
+                                        setInviteLink(link);
+                                    } catch (error: any) {
+                                        toast.error(error.response?.data?.message || 'Failed to generate invite');
+                                    } finally {
+                                        setInviteLoading(false);
+                                    }
+                                }}
+                            >
+                                {inviteLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <><Copy className="mr-2 h-4 w-4" /> Copy Invite Link</>}
+                            </Button>
                             <Button type="submit" disabled={inviteLoading}>
                                 {inviteLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Send Invite'}
                             </Button>
