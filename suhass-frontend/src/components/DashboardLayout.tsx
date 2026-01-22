@@ -1,12 +1,23 @@
 import { useAuthStore, UserRole } from '@/store/authStore';
-import { FolderGit2, LogOut, Users } from 'lucide-react';
+import { FolderGit2, KeyRound, LogOut, MoreVertical, Users } from 'lucide-react';
+import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import ChangePasswordDialog from './ChangePasswordDialog';
 import { Button } from './ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -58,7 +69,7 @@ export default function DashboardLayout() {
             </nav>
           </div>
 
-          {/* Right: User info + Logout */}
+          {/* Right: User info + Actions */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -74,10 +85,28 @@ export default function DashboardLayout() {
                 {user?.role}
               </span>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-600 dark:text-gray-400">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-400">
+                  <MoreVertical className="h-5 w-5" />
+                  <span className="sr-only">User menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setChangePasswordOpen(true)}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Change Password
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -86,6 +115,9 @@ export default function DashboardLayout() {
       <main className="container mx-auto px-4 py-8">
         <Outlet />
       </main>
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
     </div>
   );
 }

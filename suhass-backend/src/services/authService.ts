@@ -116,4 +116,35 @@ export class AuthService {
 
     return { user: newUser, token: authToken };
   }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.userRepo
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.id = :userId', { userId })
+      .getOne();
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Verify current password
+    const isPasswordCorrect = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isPasswordCorrect) {
+      throw new AppError('Current password is incorrect', 401);
+    }
+
+    // Check if new password is same as current
+    const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
+    if (isSamePassword) {
+      throw new AppError('New password must be different from current password', 400);
+    }
+
+    // Hash and update password
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+    user.passwordHash = newPasswordHash;
+    await this.userRepo.save(user);
+
+    return { message: 'Password changed successfully' };
+  }
 }

@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,10 +46,9 @@ export default function RegisterPage() {
       const { user, token: authToken } = res.data.data;
       login(user, authToken);
       navigate("/dashboard");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.response?.data?.message || "Failed to register");
-      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to register');
     } finally {
       setLoading(false);
     }
