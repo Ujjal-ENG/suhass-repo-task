@@ -1,3 +1,8 @@
+import { toast } from "sonner";
+
+// ... (Wait, I should add the import first or do it all in one go. I'll do it in multiple chunks or use multi_replace if I can't guarantee import position)
+// I'll use multi_replace to be safe
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -84,9 +89,10 @@ export default function ProjectsPage() {
       }
       await fetchProjects();
       setIsDialogOpen(false);
+      toast.success(editingProject ? "Project updated successfully" : "Project created successfully");
     } catch (error) {
       console.error("Failed to save project", error);
-      alert("Failed to save project");
+      toast.error("Failed to save project");
     } finally {
       setSubmitLoading(false);
     }
@@ -97,9 +103,10 @@ export default function ProjectsPage() {
     try {
       await api.delete(`/projects/${projectId}`);
       setProjects(projects.filter((p) => p.id !== projectId));
+      toast.success("Project deleted successfully");
     } catch (error) {
       console.error("Failed to delete", error);
-      alert("Failed to delete project");
+      toast.error("Failed to delete project");
     }
   };
 
